@@ -12,6 +12,8 @@ builder.Services.AddDbContext<BlogDBContext>(options =>
     
 });
 
+builder.Services.AddSwaggerGen();
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -20,6 +22,9 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
+app.UseRouting();
 app.MapControllers();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.Run();
