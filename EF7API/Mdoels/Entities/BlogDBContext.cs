@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace EF7API.Mdoels.Entities;
 
@@ -7,4 +8,23 @@ public class BlogDBContext : DbContext
     public DbSet<Blog> Blogs { get; set; } = default!;
     public DbSet<Comment> Comments { get; set; } = default!;
     public DbSet<User> Users { get; set; } = default!;
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseInMemoryDatabase("BlogDB");
+        }
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Blog>()
+            .Property(p => p.BlogId)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<Comment>()
+            .Property(p => p.CommentId)
+            .ValueGeneratedOnAdd();
+    }
 }

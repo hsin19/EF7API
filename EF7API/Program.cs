@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddDbContext<BlogDBContext>(options =>
 {
-    options.UseInMemoryDatabase("");
+    
 });
 
 WebApplication app = builder.Build();
