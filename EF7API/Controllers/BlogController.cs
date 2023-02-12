@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using EF7API.Mdoels.Dtos;
+using EF7API.Mdoels.Entities;
+using EF7API.Mdoels.Enums;
+using EF7API.Mdoels.Utilities;
+using EF7API.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using EF7API.Mdoels.Entities;
+using System.Security.Claims;
 
 namespace EF7API.Controllers
 {
@@ -14,10 +14,11 @@ namespace EF7API.Controllers
     public class BlogController : ControllerBase
     {
         private readonly BlogDBContext _context;
-
-        public BlogController(BlogDBContext context)
+        private readonly GuidGenerator _guidGenerator;
+        public BlogController(BlogDBContext context, GuidGenerator guidGenerator)
         {
             _context = context;
+            _guidGenerator = guidGenerator;
         }
 
         // GET: api/Blog
@@ -31,7 +32,7 @@ namespace EF7API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Blog>> GetBlog(Guid id)
         {
-            var blog = await _context.Blogs.FindAsync(id);
+            Blog? blog = await _context.Blogs.FindAsync(id);
 
             if (blog == null)
             {
@@ -41,16 +42,30 @@ namespace EF7API.Controllers
             return blog;
         }
 
-        // PUT: api/Blog/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutBlog(Guid id, Blog blog)
+        [HttpPost("Search")]
+        public async Task<ActionResult<IEnumerable<Blog>>> SearchBlogs(SearchOptions searchDto)
         {
-            if (id != blog.BlogId)
+            switch (searchDto.Condition)
             {
-                return BadRequest();
+                case Condition.Contains when searchDto.Value != null:
+                    return await _context.Blogs
+                        .Where(b => b.BlogTitle.Contains(searchDto.Value))
+                        .ToListAsync();
+                case Condition.Equal when searchDto.Value != null:
+                    return await _context.Blogs
+                        .Where(b => b.BlogTitle == searchDto.Value)
+                        .ToListAsync();
+                default:
+                    return BadRequest();
             }
+        }
 
+        // PUT: api/Blog/5
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutBlog(Guid id, BlogDto blogDto)
+        {
+            Blog blog = ConvertToBlog(blogDto);
+            // TODO Check user
             _context.Entry(blog).State = EntityState.Modified;
 
             try
@@ -73,27 +88,31 @@ namespace EF7API.Controllers
         }
 
         // POST: api/Blog
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Blog>> PostBlog(Blog blog)
+        public async Task<ActionResult<Blog>> PostBlog(BlogDto blogDto)
         {
+            Blog blog = ConvertToBlog(blogDto);
             _context.Blogs.Add(blog);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBlog", new { id = blog.BlogId }, blog);
+            return CreatedAtAction(nameof(GetBlog), new { id = blog.BlogId }, blog);
         }
 
         // DELETE: api/Blog/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBlog(Guid id)
         {
-            var blog = await _context.Blogs.FindAsync(id);
+            Blog? blog = await _context.Blogs.FindAsync(id);
             if (blog == null)
             {
                 return NotFound();
             }
+            // not support InMemory
+            //await _context.Comments.Where(c => c.BlogId == blog.BlogId).ExecuteDeleteAsync();
+            List<Comment> comments = await _context.Comments.Where(c => c.BlogId == blog.BlogId).ToListAsync();
 
             _context.Blogs.Remove(blog);
+            _context.Comments.RemoveRange(comments);
             await _context.SaveChangesAsync();
 
             return NoContent();
@@ -102,6 +121,20 @@ namespace EF7API.Controllers
         private bool BlogExists(Guid id)
         {
             return _context.Blogs.Any(e => e.BlogId == id);
+        }
+
+        private Blog ConvertToBlog(BlogDto blogDto)
+        {
+            Guid id = _guidGenerator.NewGuild();
+            // TODO auth
+            string? name = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            name ??= "UnKnown"; // throw
+            return new Blog(id)
+            {
+                BlogContent = blogDto.BlogContent,
+                BlogTitle = blogDto.BlogTitle,
+                UserId = name
+            };
         }
     }
 }

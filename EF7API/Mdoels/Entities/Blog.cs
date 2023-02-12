@@ -1,8 +1,15 @@
-﻿namespace EF7API.Mdoels.Entities;
+﻿using System.Xml.Linq;
+
+namespace EF7API.Mdoels.Entities;
 
 public class Blog
 {
-    public Guid BlogId { get; set; }
+    public Blog(Guid blogId)
+    {
+        BlogId = blogId;
+    }
+
+    public Guid BlogId { get; private set; }
 
     public string BlogTitle { get; set; } = default!;
 

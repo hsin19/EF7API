@@ -2,7 +2,9 @@
 
 public class Comment
 {
-    public Guid CommentId { get; set; }
+    public Guid CommentId { get; private set; }
+
+    public Guid BlogId { get; private set; }
 
     public string CommentText { get; set; } = default!;
 

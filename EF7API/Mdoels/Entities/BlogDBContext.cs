@@ -24,15 +24,4 @@ public class BlogDBContext : DbContext
             optionsBuilder.UseInMemoryDatabase("BlogDB");
         }
     }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Blog>()
-            .Property(p => p.BlogId)
-            .ValueGeneratedOnAdd();
-
-        modelBuilder.Entity<Comment>()
-            .Property(p => p.CommentId)
-            .ValueGeneratedOnAdd();
-    }
 }
