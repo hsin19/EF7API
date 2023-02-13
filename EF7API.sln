@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF7API", "EF7API\EF7API.csproj", "{83AD5105-0989-4CB4-A87A-3AB345E61D6A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EF7API", "EF7API\EF7API.csproj", "{83AD5105-0989-4CB4-A87A-3AB345E61D6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EF7API.Test", "EF7API.Test\EF7API.Test.csproj", "{0CD28383-6E57-4A26-8AB9-FD2B5E2F9A60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{83AD5105-0989-4CB4-A87A-3AB345E61D6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83AD5105-0989-4CB4-A87A-3AB345E61D6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83AD5105-0989-4CB4-A87A-3AB345E61D6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0CD28383-6E57-4A26-8AB9-FD2B5E2F9A60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0CD28383-6E57-4A26-8AB9-FD2B5E2F9A60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0CD28383-6E57-4A26-8AB9-FD2B5E2F9A60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0CD28383-6E57-4A26-8AB9-FD2B5E2F9A60}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
