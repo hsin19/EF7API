@@ -3,6 +3,7 @@ using EF7API.Mdoels.Entities;
 using EF7API.Mdoels.Enums;
 using EF7API.Mdoels.Utilities;
 using EF7API.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -11,10 +12,12 @@ namespace EF7API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BlogController : ControllerBase
     {
         private readonly BlogDBContext _context;
         private readonly GuidGenerator _guidGenerator;
+
         public BlogController(BlogDBContext context, GuidGenerator guidGenerator)
         {
             _context = context;
@@ -23,6 +26,7 @@ namespace EF7API.Controllers
 
         // GET: api/Blog
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Blog>>> GetBlogs()
         {
             return await _context.Blogs.ToListAsync();
@@ -30,6 +34,7 @@ namespace EF7API.Controllers
 
         // GET: api/Blog/5
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Blog>> GetBlog(Guid id)
         {
             Blog? blog = await _context.Blogs.FindAsync(id);
@@ -43,6 +48,7 @@ namespace EF7API.Controllers
         }
 
         [HttpPost("Search")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Blog>>> SearchBlogs(SearchOptions searchDto)
         {
             switch (searchDto.Condition)
@@ -64,8 +70,15 @@ namespace EF7API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBlog(Guid id, BlogDto blogDto)
         {
-            Blog blog = ConvertToBlog(blogDto);
+            Blog blog = ConvertToBlog(blogDto, id);
+
             // TODO Check user
+            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userId?.Value != blog.UserId)
+            {
+                return Unauthorized();
+            }
+
             _context.Entry(blog).State = EntityState.Modified;
 
             try
@@ -123,13 +136,15 @@ namespace EF7API.Controllers
             return _context.Blogs.Any(e => e.BlogId == id);
         }
 
-        private Blog ConvertToBlog(BlogDto blogDto)
+        private Blog ConvertToBlog(BlogDto blogDto, Guid? id = null)
         {
-            Guid id = _guidGenerator.NewGuild();
-            // TODO auth
+            id ??= _guidGenerator.NewGuild();
             string? name = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            name ??= "UnKnown"; // throw
-            return new Blog(id)
+            if (name == null)
+            {
+                throw new Exception();
+            }
+            return new Blog(id.Value)
             {
                 BlogContent = blogDto.BlogContent,
                 BlogTitle = blogDto.BlogTitle,
